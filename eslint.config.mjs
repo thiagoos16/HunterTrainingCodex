@@ -1,35 +1,43 @@
-// @ts-check
-import eslint from '@eslint/js';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
+import js from "@eslint/js";
+import tseslint from "@typescript-eslint/eslint-plugin";
+import tsparser from "@typescript-eslint/parser";
+import prettier from "eslint-config-prettier";
+import prettierPlugin from "eslint-plugin-prettier";
 
-export default tseslint.config(
+export default [
+  js.configs.recommended,
   {
-    ignores: ['eslint.config.mjs'],
+    files: ["**/*.ts"],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        project: "./tsconfig.json",
+      },
+      globals: {
+        process: "readonly", // ✅ Define 'process' como global (substitui env: node)
+        __dirname: "readonly", // Se precisar de __dirname
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+      "prettier": prettierPlugin,
+    },
+    rules: {
+      "prettier/prettier": ["error", { singleQuote: true, semi: false }],
+      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    },
   },
-  eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  eslintPluginPrettierRecommended,
   {
+    files: ["**/*.spec.ts", "**/*.test.ts", "**/*.e2e-spec.ts"],
     languageOptions: {
       globals: {
-        ...globals.node,
-        ...globals.jest,
-      },
-      ecmaVersion: 5,
-      sourceType: 'module',
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
+        describe: "readonly",
+        it: "readonly",
+        beforeEach: "readonly",
+        expect: "readonly",
+        process: "readonly"
+      }
+    }
   },
-  {
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn'
-    },
-  },
-);
+  prettier,
+];
